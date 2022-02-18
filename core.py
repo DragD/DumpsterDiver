@@ -205,19 +205,9 @@ def folder_reader(queue, settings):
                     extract_archive(archive, extract_path)
                     folder_reader(extract_path, queue)
 
-                elif extension == '' and ('.git/objects/' in _file):
-                    try:
-                        with open(_file, 'rb') as f:
-                            # reading 16 magic bits to recognize VAX COFF
-                            if f.read(2) == b'x\x01':
-                                decompressed = git_object_reader(_file)
-
-                                if decompressed:
-                                    queue.put(decompressed)
-
-                    except Exception as e:
-                        logger.error(e)
-
+                elif ('.git/' in _file):
+                    # Skipping ./git folder
+                    logger.info("Skipping file ./git folder: " + _file)
                 else:
                     queue.put(_file)
 
