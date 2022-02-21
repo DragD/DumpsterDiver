@@ -2,9 +2,10 @@ ARG BASE_IMAGE=python:alpine3.15
 
 FROM ${BASE_IMAGE}
 
-RUN  set -x           \
-	&& apk update       \
-  && apk upgrade
+RUN  apk update     \
+  && apk upgrade    \
+  && apk add jq     \
+  && rm -rf /var/cache/*/*
 
 ADD requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
@@ -13,5 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 ADD *.py *.yaml ./
 RUN chmod +x DumpsterDiver.py
 
-ENTRYPOINT ["python","DumpsterDiver.py"]
+CMD ["python","DumpsterDiver.py"]
 
