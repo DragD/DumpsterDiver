@@ -1,11 +1,13 @@
 SHELL := /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 
-TAG=alpine3.15
-IMG_REPO=us.icr.io/image-hub
+TAG=3.10.6-alpine3.16
+IMAGE_NAME=dumpsterdiver
+IMAGE_REPO=us.icr.io/image-hub
+IMG_TAG=${IMAGE_REPO}/${IMAGE_NAME}:${TAG}
+DOCKERFILE=Dockerfile
 
-IMG_DD_BASE=${IMG_REPO}/python
-IMG_DD=${IMG_REPO}/dumpsterdiver
+IMG_TAG_BASE=${IMAGE_REPO}/python:${TAG}
 
 container_name=dumpsterdiver
 
@@ -23,28 +25,43 @@ labels=--label=BuiltBy=${BUILT_BY} 			\
 				--label=GitBranch=${GIT_BRANCH}	\
 				--label=GitCommit=${GIT_COMMIT}
 
+REPOS_DIR=/home/dragd/git
+
 image:
 	@echo "Building container image..."
-	docker build ${common_build_args} ${labels} 											\
-				--label=BaseImage=${IMG_DD_BASE}:${TAG} 				\
-				--label=Dockerfile=${GIT_REPO}/Dockerfile 									\
-				--build-arg BASE_IMAGE=${IMG_DD_BASE}:${TAG}		\
-				-t ${IMG_DD}:${TAG}																					\
+	docker build ${common_build_args} ${labels} 	\
+				--label=Version=${TAG}									\
+				--label=BaseImage=${IMG_TAG_BASE}				\
+				--label=Dockerfile=${DOCKERFILE} 				\
+				--build-arg=BASE_IMAGE=${IMG_TAG_BASE}	\
+				--no-cache --pull 											\
+				-t ${IMG_TAG}														\
 				-f Dockerfile	.
 
+run:
+	@echo "Scanning current folder..."
+	docker run -it --rm --name ${container_name} 																		\
+		-v ${REPOS_DIR}/si-services:/vul																							\
+		-v ${REPOS_DIR}/cloud-deploy/image-hub/DumpsterDiver/config.yaml:/config.yaml \
+		${IMG_TAG} 																																		\
+		python DumpsterDiver.py	-p /vul -o /vul/dumpsterdiver.json --entropy=5
+
 push:
-	@echo "Pushing container image..."
-	docker push ${IMG_DD}:${TAG}
-	ibmcloud cr image-tag ${IMG_DD}:${TAG} ${IMG_DD}:${DATE_TAG}
+	@echo "Pushing image..."
+	docker push ${IMG_TAG}
+	ibmcloud cr image-tag ${IMG_TAG}  ${IMAGE_REPO}/${IMAGE_NAME}:${DATE_TAG}
+	oc tag ${IMG_TAG}  									  image-hub/${IMAGE_NAME}:${TAG}  --reference-policy=local --scheduled
+	@sleep 5
+	oc tag image-hub/${IMAGE_NAME}:${TAG} image-hub/${IMAGE_NAME}:latest
 
 va:
-	@echo "Vulnerability Assessment status"
-	ibmcloud cr va ${IMG_DD}:${TAG}
+	@echo "Vulnerability Assessment status..."
+	ibmcloud cr va ${IMG_TAG}
 
-scan:
-	@echo "Scanning current folder..."
-	docker run -it --rm                   \
-		-v /home/dragd/git/si-services:/vul \
-		-v /home/dragd/git/DumpsterDiver/config.yaml:/config.yaml \
-		${IMG_DD}:${TAG} \
-	  python DumpsterDiver.py	-p /vul -o /vul/dumpsterdiver.json --entropy=5
+# Check if a variable is set
+check_defined = \
+    $(strip $(foreach 1,$1, \
+        $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+      $(error Undefined variable $1$(if $2, ($2))))
