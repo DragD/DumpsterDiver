@@ -25,7 +25,7 @@ labels=--label=BuiltBy=${BUILT_BY} 			\
 				--label=GitBranch=${GIT_BRANCH}	\
 				--label=GitCommit=${GIT_COMMIT}
 
-REPOS_DIR=/home/dragd/git
+REPOS_DIR=${HOME}/git
 
 image:
 	@echo "Building container image..."
