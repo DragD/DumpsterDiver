@@ -40,11 +40,11 @@ image:
 
 run:
 	@echo "Scanning current folder..."
-	docker run -it --rm --name ${container_name} 																		\
-		-v ${REPOS_DIR}/si-services:/vul																							\
-		-v ${REPOS_DIR}/cloud-deploy/image-hub/DumpsterDiver/config.yaml:/config.yaml \
-		${IMG_TAG} 																																		\
-		python DumpsterDiver.py	-p /vul -o /vul/dumpsterdiver.json --entropy=5
+	docker run -it --rm --name ${container_name} 													\
+		-v ${REPOS_DIR}/si-services:/vul																		\
+		${IMG_TAG} 																													\
+		python DumpsterDiver.py	-p /vul -o /vul/dumpsterdiver.json 					\
+				--entropy=5	--exclude-files .scss .css .map
 
 push:
 	@echo "Pushing image..."
