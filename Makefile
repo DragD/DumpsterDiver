@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 
-TAG=3.12.0a3-alpine3.17
+TAG=3.11.2-alpine3.17
 IMAGE_NAME=dumpsterdiver
 IMAGE_REPO=us.icr.io/image-hub
 IMG_TAG=${IMAGE_REPO}/${IMAGE_NAME}:${TAG}
