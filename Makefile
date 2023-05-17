@@ -50,6 +50,7 @@ push:
 	@echo "Pushing image..."
 	docker push ${IMG_TAG}
 	ibmcloud cr image-tag ${IMG_TAG}  ${IMAGE_REPO}/${IMAGE_NAME}:${DATE_TAG}
+	ibmcloud cr image-tag ${IMG_TAG}  ${IMAGE_REPO}/${IMAGE_NAME}:latest
 	oc tag ${IMG_TAG}  									  image-hub/${IMAGE_NAME}:${TAG}  --reference-policy=local --scheduled
 	@sleep 5
 	oc tag image-hub/${IMAGE_NAME}:${TAG} image-hub/${IMAGE_NAME}:latest
